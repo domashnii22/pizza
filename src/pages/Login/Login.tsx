@@ -3,13 +3,10 @@ import Button from '../../components/Button/Button';
 import Headling from '../../components/Headling/Headling';
 import Input from '../../components/Input/Input';
 import styles from './Login.module.css';
-import { FormEvent, useState } from 'react';
-import axios, { AxiosError } from 'axios';
-import { PREFIX } from '../../helpers/API';
-import { LoginResponse } from '../../interfaces/auth.interface';
-// import { useDispatch, useSelector } from 'react-redux';
-// import { AppDispath, RootState } from '../../store/store';
-// import { login, userActions } from '../../store/user.slice';
+import { FormEvent, useEffect, useState } from 'react';
+import { login, userActions } from '../../store/user.slice';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../store/store';
 
 export type LoginForm = {
   email: {
@@ -23,51 +20,35 @@ export type LoginForm = {
 export function Login() {
   const [error, serError] = useState<string | null>();
   const navigate = useNavigate();
-  //   const dispatch = useDispatch<AppDispath>();
-  //   const { jwt, loginErrorMessage } = useSelector((s: RootState) => s.user);
+  const dispatch = useDispatch<AppDispatch>();
+  const { jwt, loginErrorMessage } = useSelector((s: RootState) => s.user);
 
-  //   useEffect(() => {
-  //     if (jwt) {
-  //       navigate('/');
-  //     }
-  //   }, [jwt, navigate]);
+  useEffect(() => {
+    if (jwt) {
+      navigate('/');
+    }
+  }, [jwt, navigate]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     serError(null);
-    // dispatch(userActions.clearLoginError());
+    dispatch(userActions.clearLoginError());
     const target = e.target as typeof e.target & LoginForm;
     const { email, password } = target;
     await sendLogin(email.value, password.value);
     navigate('/');
   };
 
-  //   const sendLogin = async (email: string, password: string) => {
-  //     dispatch(login({ email, password }));
-  //   };
-
   const sendLogin = async (email: string, password: string) => {
-    try {
-      const { data } = await axios.post<LoginResponse>(`${PREFIX}/auth/login`, {
-        email,
-        password,
-      });
-      console.log(data);
-      localStorage.setItem('jwt', data.access_token);
-    } catch (e) {
-      if (e instanceof AxiosError) {
-        console.log(e);
-        serError(e.response?.data.message);
-      }
-    }
+    dispatch(login({ email, password }));
   };
 
   return (
     <div className={styles['login']}>
       <Headling>Вход</Headling>
-      {/* {loginErrorMessage && (
+      {loginErrorMessage && (
         <div className={styles['error']}>{loginErrorMessage}</div>
-      )} */}
+      )}
       {error && <div className={styles['error']}>{error}</div>}
       <form className={styles['form']} onSubmit={submit}>
         <div className={styles['field']}>
